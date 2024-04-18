@@ -21,16 +21,35 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.modal-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
 .modal-content {
   background-color: whitesmoke;
   padding: 2em;
   border-radius: 5px;
   max-width: 500px;
+}
+
+.modal-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.close-btn {
+  color: white;
+  cursor: pointer;
+  font-size: 20px;
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  transition: background-color 0.3s, color 0.3s;
+  background-color: red;
+  border-radius: 50%;
+  padding: 0 5px 0 5px;
+}
+
+.close-btn:hover {
+  background-color: white;
+  color: red;
 }

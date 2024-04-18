@@ -4,10 +4,12 @@ import './App.css';
 import * as api from './api';
 import { Recipe } from './types';
 import RecipeCard from './components/RecipeCard';
+import RecipeModal from './components/RecipeModal';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | undefined>(undefined);
   const pageNumber = useRef(1);
 
   const handleSearchSubmit = async(event: FormEvent) => {
@@ -46,7 +48,10 @@ const App = () => {
       </form>
 
       {recipes.map((recipe) => (
-        <RecipeCard recipe={recipe} />
+        <RecipeCard 
+          recipe={recipe} 
+          onClick={() => setSelectedRecipe(recipe)}
+        />
       ))}
 
       <button 
@@ -55,6 +60,15 @@ const App = () => {
       >
         View More
       </button>
+
+      {selectedRecipe ? 
+        <RecipeModal 
+          recipeId={selectedRecipe.id.toString()} 
+          onClose={() => setSelectedRecipe(undefined)}
+        /> 
+        : 
+        null
+      }
     </div>
   )
 };
