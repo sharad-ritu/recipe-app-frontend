@@ -1,16 +1,32 @@
 //import React from 'react';
-import { FormEvent, useState, useRef } from 'react';
+import { FormEvent, useState, useRef, useEffect } from 'react';
 import './App.css';
 import * as api from './api';
 import { Recipe } from './types';
 import RecipeCard from './components/RecipeCard';
 import RecipeModal from './components/RecipeModal';
 
+type Tabs = "search" | "favourites";
+
 const App = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | undefined>(undefined);
   const pageNumber = useRef(1);
+  const [selectedTab, setSelectedTab] = useState<Tabs>('search');
+  const [favouriteRecipes, setFavouriteRecipes] = useState<Recipe[]>([]);
+
+  useEffect(() => {
+    const fetchFavouriteRecipes = async () => {
+      try {
+        const favourites = await api.getFavouriteRecipes();
+        setFavouriteRecipes(favourites);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    fetchFavouriteRecipes();
+  }, []);
 
   const handleSearchSubmit = async(event: FormEvent) => {
     event.preventDefault();
@@ -22,6 +38,7 @@ const App = () => {
       console.log(error);
     }
   }
+
   const handleViewMoreClick = async() => {
     const nextPage = pageNumber.current + 1;
     try {
@@ -32,35 +49,82 @@ const App = () => {
       console.log(error);
     }
   }
+
+  const addFavouriteRecipe = async(recipe: Recipe) => {
+    try {
+      await api.addFavouriteRecipe(recipe);
+      setFavouriteRecipes([...favouriteRecipes, recipe]);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const removeFavouriteRecipe = async(recipe: Recipe) => {
+    try {
+      await api.removeFavouriteRecipe(recipe);
+      const updatedRecipes = favouriteRecipes.filter((favRecipe) => recipe.id !== favRecipe.id);
+      setFavouriteRecipes(updatedRecipes);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <div>
-      <form onSubmit={(event) => handleSearchSubmit(event)}>
-        <input 
-          type="text" 
-          required
-          placeholder='Enter search term ....'
-          value={searchTerm}
-          onChange={(event) => {
-            setSearchTerm(event.target.value);
-          }}
-        />
-        <button type='submit'>Submit</button>
-      </form>
+      <div className="tabs">
+        <h1 onClick={() => setSelectedTab('search')}>Recipe Search</h1>
+        <h1 onClick={() => setSelectedTab('favourites')}>Favourites</h1>
+      </div>
+      {selectedTab === 'search' && (
+        <>
+          <form onSubmit={(event) => handleSearchSubmit(event)}>
+            <input 
+              type="text" 
+              required
+              placeholder='Enter search term ....'
+              value={searchTerm}
+              onChange={(event) => {
+                setSearchTerm(event.target.value);
+              }}
+            />
+            <button type='submit'>Submit</button>
+          </form>
 
-      {recipes.map((recipe) => (
-        <RecipeCard 
-          recipe={recipe} 
-          onClick={() => setSelectedRecipe(recipe)}
-        />
-      ))}
+          {recipes.map((recipe) => {
+            const isFavourite = favouriteRecipes.some(
+              (favRecipe) => recipe.id === favRecipe.id
+            );
+            return (
+              <RecipeCard
+                recipe={recipe}
+                onClick={() => setSelectedRecipe(recipe)}
+                onFavouriteButtonClick={isFavourite ? removeFavouriteRecipe : addFavouriteRecipe}
+                isFavourite={isFavourite}
+              />
+            );
+          })}
 
-      <button 
-        className='view-more-button'
-        onClick={handleViewMoreClick}
-      >
-        View More
-      </button>
-
+          <button 
+            className='view-more-button'
+            onClick={handleViewMoreClick}
+          >
+            View More
+          </button>
+        </>
+      )}
+      
+      {selectedTab === 'favourites' && 
+        <div>
+          {favouriteRecipes.map((recipe) => (
+            <RecipeCard
+              recipe={recipe}
+              onClick={() => setSelectedRecipe(recipe)}
+              onFavouriteButtonClick={removeFavouriteRecipe}
+              isFavourite={true}
+            />
+          ))}
+        </div>
+      }
       {selectedRecipe ? 
         <RecipeModal 
           recipeId={selectedRecipe.id.toString()} 

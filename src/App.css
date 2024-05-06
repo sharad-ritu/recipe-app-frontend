@@ -53,3 +53,15 @@
   background-color: white;
   color: red;
 }
+
+.tabs {
+  display: flex;
+  gap: 2em;
+  cursor: pointer;
+}
+
+.recipe-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
